@@ -1,0 +1,28 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly Monday 9am UTC
+
+jobs:
+  npm-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+      - name: Run npm audit (report only)
+        run: npm audit --json > npm-audit-report.json || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: npm-audit-report.json
